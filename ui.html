@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔥 Gamer Tic-Tac-Toe 🔥</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Press Start 2P', cursive;
+      background-image: url('https://images.app.goo.gl/5ewWiy2g9txfGqvt6');
+      background-size: cover;
+      background-color: #0f0f0f;
+      color: #39ff14;
+      text-align: center;
+    }
+    .container {
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
+      max-width: 600px;
+      margin: auto;
+      border-radius: 10px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 10px;
+      justify-content: center;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      background: #222;
+      border: 2px solid #39ff14;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #39ff14;
+    }
+    .scoreboard, #timer, #rematchBtn {
+      margin: 20px 0;
+      font-size: 1rem;
+    }
+    #avatar {
+      font-size: 3rem;
+      margin: 15px 0;
+    }
+    #status {
+      font-size: 1.2rem;
+      color: #f39c12;
+    }
+    button {
+      font-family: 'Press Start 2P', cursive;
+      padding: 10px;
+      background: #39ff14;
+      color: #000;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Ultimate Gamer Tic-Tac-Toe 🎮</h1>
+    <div class="scoreboard">
+      Wins: <span id="wins">0</span> |
+      Losses: <span id="losses">0</span> |
+      Draws: <span id="draws">0</span>
+    </div>
+    <div id="timer">⏱ Time: <span id="time">30</span>s</div>
+    <div class="board" id="board"></div>
+    <p id="status"></p>
+    <div id="avatar">🤖</div>
+    <button id="rematchBtn">🔁 Rematch</button>
+    <audio id="bgMusic" src="https://www.fesliyanstudios.com/play-mp3/387" autoplay loop></audio>
+  </div>
+  <script>
+    const board = document.getElementById("board");
+    const statusText = document.getElementById("status");
+    const avatar = document.getElementById("avatar");
+    const timeDisplay = document.getElementById("time");
+    const rematchBtn = document.getElementById("rematchBtn");
+
+    let cells = Array(9).fill(null);
+    let currentPlayer = "X";
+    let gameOver = false;
+    let timer;
+    let timeLeft = 30;
+
+    let winCount = parseInt(localStorage.getItem("wins")) || 0;
+    let lossCount = parseInt(localStorage.getItem("losses")) || 0;
+    let drawCount = parseInt(localStorage.getItem("draws")) || 0;
+
+    document.getElementById("wins").textContent = winCount;
+    document.getElementById("losses").textContent = lossCount;
+    document.getElementById("draws").textContent = drawCount;
+
+    function startTimer() {
+      clearInterval(timer);
+      timeLeft = 30;
+      timeDisplay.textContent = timeLeft;
+      timer = setInterval(() => {
+        timeLeft--;
+        timeDisplay.textContent = timeLeft;
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          endGame("Timeout");
+        }
+      }, 1000);
+    }
+
+    function renderBoard() {
+      board.innerHTML = "";
+      cells.forEach((val, i) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.textContent = val;
+        cell.addEventListener("click", () => handleClick(i));
+        board.appendChild(cell);
+      });
+    }
+
+    function handleClick(index) {
+      if (gameOver || cells[index]) return;
+      cells[index] = currentPlayer;
+      renderBoard();
+      const winner = checkWinner();
+      if (winner) return endGame(winner);
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      startTimer();
+    }
+
+    function checkWinner() {
+      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for (let [a,b,c] of wins) {
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) return cells[a];
+      }
+      if (cells.every(c => c)) return "Draw";
+      return null;
+    }
+
+    function endGame(winner) {
+      clearInterval(timer);
+      gameOver = true;
+      if (winner === "X") {
+        winCount++;
+        localStorage.setItem("wins", winCount);
+        document.getElementById("wins").textContent = winCount;
+        statusText.textContent = "🎉 Player X wins!";
+      } else if (winner === "O") {
+        lossCount++;
+        localStorage.setItem("losses", lossCount);
+        document.getElementById("losses").textContent = lossCount;
+        statusText.textContent = "💀 Player O wins!";
+      } else if (winner === "Timeout") {
+        statusText.textContent = "⏱ Time's up! No winner.";
+      } else {
+        drawCount++;
+        localStorage.setItem("draws", drawCount);
+        document.getElementById("draws").textContent = drawCount;
+        statusText.textContent = "😐 It's a draw!";
+      }
+    }
+
+    rematchBtn.addEventListener("click", () => {
+      cells = Array(9).fill(null);
+      currentPlayer = "X";
+      gameOver = false;
+      statusText.textContent = "";
+      avatar.textContent = "🤖";
+      renderBoard();
+      startTimer();
+    });
+
+    renderBoard();
+    startTimer();
+  </script>
+</body>
+</html>
